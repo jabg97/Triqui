@@ -20,10 +20,10 @@ public class Triqui extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        Parent root = FXMLLoader.load(getClass().getResource("FXML_GUI.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("View.fxml"));
         JFXDecorator decorator = new JFXDecorator(stage, root);
-        Scene scene = new Scene(decorator, 800, 600);
-        stage.setTitle("JFoenix Material Design");
+        Scene scene = new Scene(decorator, 600, 400);
+        stage.setTitle("Triqui");
         stage.setScene(scene);
         stage.show();
     }
