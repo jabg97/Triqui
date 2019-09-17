@@ -11,110 +11,152 @@ package triqui;
  */
 public class Logica {
 
-    private char[] tablero;
+    /**
+     * Arreglo que representa el tablero del triqui<BR>
+     * |0|1|2|<BR>
+     * |3|4|5|<BR>
+     * |6|7|8|
+     */
+    private byte[] tablero;
+
+    /**
+     * Arreglo con todas las jugadas posibles
+     */
+    private byte[][] jugadas = {
+        {0, 1, 2}, {3, 4, 5}, {6, 7, 8}, //Horizontal
+        {0, 3, 6}, {1, 4, 7}, {2, 5, 8}, //Vertical
+        {0, 4, 8}, {2, 4, 6} //Diagonal
+    };
+
+    /**
+     * Los movimientos del JUGADOR valen (1)
+     */
+    public final byte JUGADOR = 1;
+
+    /**
+     * El estado final del JUGADOR vale (3)
+     */
+    public final byte FINAL_JUGADOR = 3;
+
+    /**
+     * Los movimientos del PC valen (4)
+     */
+    public final byte PC = 4;
+
+    /**
+     * El estado semifinal del PC vale (8)
+     */
+    public final byte SEMIFINAL_PC = 8;
+
+    /**
+     * El estado final del PC vale (12)
+     */
+    public final byte FINAL_PC = 12;
+
+    /**
+     * Cantidad de movimientos
+     */
     private byte movimientos;
-    private final char jugador = 'X';
-    private final char ia = 'O';
 
     public Logica() {
-        movimientos = 9;
-        this.tablero = new char[9];
+        this.tablero = new byte[9];
+        this.movimientos = 9;
     }
 
-    public void update(byte id, char texto) {
-        this.tablero[id] = texto;
+    public void actualizar(byte id, byte dato) {
+        this.tablero[id] = dato;
         this.movimientos--;
     }
 
-    public byte IA() {
+    public byte decidir() {
         byte desicion = -1;
-        if (getMovimientos() == 8) {
+        if (this.movimientos == 8) {
             desicion = inicio();
         } else {
-            int max = Integer.MIN_VALUE;
-            System.out.println("======================");
             for (byte i = 0; i < this.tablero.length; i++) {
-                if (this.tablero[i] == '\0') {
-                    char[] copy = (char[]) this.tablero.clone();
-                    copy[i] = ia;
-                    int resultado = arbol(copy, this.movimientos, false);
-                    System.out.println(i + "|" + resultado);
-                    if (resultado > max) {
-                        desicion = i;
-                        max = resultado;
+                if (this.tablero[i] == 0) {
+                    /*se hace una copia del tablero actual y se prueban todas
+                    las posibilidades con el turno siguiente*/
+                    byte[] copia = (byte[]) this.tablero.clone();
+                    copia[i] = this.JUGADOR;
+                    for (byte[] jugada : this.jugadas) {
+                        byte[] resultado = resultado(copia, jugada);
+                        /* si una fila suma 8 significa que tengo 2,
+                        en linea y puedo ganar inmediamente */
+                        if (resultado[0] == this.SEMIFINAL_PC) {
+                            return resultado[1];
+                        }/* si una fila suma 3 significa que el rival,
+                        puede tener 3 en linea y debo bloquear */
+                        if (resultado[0] == this.FINAL_JUGADOR) {
+                            return resultado[1];
+                        } /* si no hay posibilidad de perder ni de ganar,
+                        entonces se escoge en un espacio que este disponible
+                         */ else if (resultado[1] > desicion) {
+                            desicion = resultado[1];
+                        }
                     }
                 }
             }
         }
-
-        this.update(desicion, 'O');
         return desicion;
     }
 
+    /**
+     * Este metodo es usado para la jugada inicial de la maquina.<BR>
+     * si la posicion central esta disponible se juega alli, en caso contrario
+     * se escoge la esquina superior izquierda
+     *
+     * @return byte retorna el indice donde se debe jugar.
+     */
     private byte inicio() {
-        if (tablero[4] == '\0') {
+        //Escoger la posicion central si esta disponible
+        if (this.tablero[4] == 0) {
             return 4;
-        } else {
+        } //sino la posicion superior izquierda
+        else {
             return 0;
         }
     }
 
-    private int arbol(char[] tablero, byte movimientos, boolean turno_IA) {
-        //System.out.println(movimientos);
-        if (movimientos == 1) {
-            return resultado(tablero);
-        } else {
-            byte total = 0;
-            for (byte i = 0; i < tablero.length; i++) {
-                if (tablero[i] == '\0') {
-                    char[] copia = (char[]) tablero.clone();
-                    copia[i] = (turno_IA) ? this.ia : this.jugador;
-                    total += arbol(copia, (byte) (movimientos - 1), !turno_IA);
-                }
-            }
-            return total;
+    /**
+     * Este metodo es usado para calcular el valor de una jugada.<BR>
+     * Dependiendo de los valores retornados por esta funcion, se puede saber si
+     * se gana o se pierde.
+     *
+     * @param byte[] jugada fila a la que se va a calcular su valor
+     * @param byte[] tablero Tablero original o copia que se va a calcular
+     * @return byte[] retorna un arreglo de bytes que representa, la suma de esa
+     * jugada y el indice de la posicion vacia de esa jugada.
+     */
+    private byte[] resultado(byte[] tablero, byte[] jugada) {
+        byte suma = 0;
+        byte vacio = -1;
+        for (byte i : jugada) {
+            suma += tablero[i];
+            vacio = (this.tablero[i] == 0) ? i : vacio;
+            /*encontrar una casilla vacia para jugar en el tablero original*/
         }
-    }
-
-    private byte resultado(char[] tablero) {
-         /* for (int i = 0; i < 9; i++) {
-            System.out.print(tablero[i] + "|");
-            if ((i + 1) % 3 == 0) {
-                System.out.println("");
-            }
-        }
-        System.out.println("************************");*/
-        //HORIZONTAL  
-        if (tablero[0] != '\0' && tablero[0] == tablero[1] && tablero[1] == tablero[2]) {
-            return (byte) ((tablero[0] == this.jugador) ? 1 : -1);
-        } else if (tablero[3] != '\0' && tablero[3] == tablero[4] && tablero[4] == tablero[5]) {
-            return (byte) ((tablero[3] == this.jugador) ? 1 : -1);
-        } else if (tablero[6] != '\0' && tablero[6] == tablero[7] && tablero[7] == tablero[8]) {
-            return (byte) ((tablero[6] == this.jugador) ? 1 : -1);
-        } //VERTICAL
-        else if (tablero[0] != '\0' && tablero[0] == tablero[3] && tablero[3] == tablero[6]) {
-            return (byte) ((tablero[0] == this.jugador) ? 1 : -1);
-        } else if (tablero[1] != '\0' && tablero[1] == tablero[4] && tablero[4] == tablero[7]) {
-            return (byte) ((tablero[1] == this.jugador) ? 1 : -1);
-        } else if (tablero[2] != '\0' && tablero[2] == tablero[5] && tablero[5] == tablero[8]) {
-            return (byte) ((tablero[2] == this.jugador) ? 1 : -1);
-        } //DIAGONAL PRINCIPAL
-        else if (tablero[0] != '\0' && tablero[0] == tablero[4] && tablero[4] == tablero[8]) {
-            return (byte) ((tablero[0] == this.jugador) ? 1 : -1);
-        } //DIAGONAL SECUNDARIA
-        else if (tablero[2] != '\0' && tablero[2] == tablero[4] && tablero[4] == tablero[6]) {
-            return (byte) ((tablero[2] == this.jugador) ? 1 : -1);
-        } else {
-            return 0;
-        }
+        return new byte[]{suma, vacio};
     }
 
     public byte fin() {
-        return resultado(this.tablero);
+        for (byte[] jugada : this.jugadas) {
+            byte resultado = resultado(this.tablero, jugada)[0];
+            if (resultado == this.FINAL_JUGADOR || resultado == this.FINAL_PC) {
+                return resultado;
+            }
+        }
+        return 0;
     }
-    
+
+    /**
+     * Este metodo es usado para saber cuando el juego ha terminado.
+     *
+     * @return byte retorna la cantidad de movimientos restantes para finalizar
+     * el juego.
+     */
     public byte getMovimientos() {
-        return movimientos;
+        return this.movimientos;
     }
 
 }

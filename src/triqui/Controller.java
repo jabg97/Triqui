@@ -11,8 +11,9 @@ import java.util.ResourceBundle;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Cursor;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
+import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 
 /**
@@ -25,6 +26,9 @@ public class Controller implements Initializable {
 
     @FXML
     private Pane panel;
+    
+    @FXML
+    private Label titulo;
 
     @FXML
     private void jugar(ActionEvent event) {
@@ -32,42 +36,55 @@ public class Controller implements Initializable {
         JFXButton btn = (JFXButton) event.getSource();
         Scene scene = btn.getScene();
         byte id = Byte.parseByte(btn.getId());
-        logica.update(id, 'X');
+        logica.actualizar(id, logica.JUGADOR);
         btn.setText("X");
         btn.setDisable(true);
 
-        byte resultado = logica.fin();
-        if (resultado == 1) {
-            new Alert(Alert.AlertType.INFORMATION, "Ganaste").showAndWait();
-            reiniciar();
+        byte resultado = this.logica.fin();
+        if (resultado == logica.FINAL_JUGADOR) {
+            fin("Ganaste", "#AFB42B","#F9FBE7");
         } else {
-            if (logica.getMovimientos() > 0) {
+            if (this.logica.getMovimientos() > 0) {
                 //Turno PC
-                byte desicion = logica.IA();
+                byte desicion = this.logica.decidir();
+                this.logica.actualizar(desicion, this.logica.PC);
                 btn = (JFXButton) scene.lookup("#" + desicion);
                 btn.setText("O");
                 btn.setDisable(true);
-                System.out.println("Fin");
-                resultado = logica.fin();
-                if (resultado == -1) {
-                    new Alert(Alert.AlertType.ERROR, "Perdiste").showAndWait();
-                    reiniciar();
+                resultado = this.logica.fin();
+                if (resultado == logica.FINAL_PC) {
+                    fin("Perdiste", "#D32F2F","#FFEBEE");
                 }
             } else {
-                new Alert(Alert.AlertType.WARNING, "Empate").showAndWait();
-                reiniciar();
+                fin("Empate", "#FFA000","#FFF3E0");
             }
         }
     }
 
-    public void reiniciar() {
-        Scene scene = panel.getScene();
+    @FXML
+    private void reiniciar(ActionEvent event) {
+        Scene scene = this.panel.getScene();
+        this.panel.setStyle("-fx-background-color: transparent;-fx-border-color: transparent;");
         this.logica = new Logica();
+        this.titulo.setText("Triqui");
+        this.titulo.setStyle("-fx-text-fill: #455A64;");
         for (byte i = 0; i < 9; i++) {
             JFXButton btn = (JFXButton) scene.lookup("#" + i);
             btn.setDisable(false);
             btn.setText("");
+            btn.setCursor(Cursor.HAND);
         }
+    }
+
+    public void fin(String mensaje, String color, String fondo) {
+        Scene scene = this.panel.getScene();
+        this.panel.setStyle("-fx-background-color: " + fondo + ";-fx-border-color: " + color + ";-fx-border-width:5px;");
+        for (byte i = 0; i < 9; i++) {
+            JFXButton btn = (JFXButton) scene.lookup("#" + i);
+            btn.setDisable(true);
+        }
+        this.titulo.setText(mensaje);
+        this.titulo.setStyle("-fx-text-fill: " + color + ";");
     }
 
     @Override

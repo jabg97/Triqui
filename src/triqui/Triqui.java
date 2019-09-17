@@ -22,7 +22,7 @@ public class Triqui extends Application {
     public void start(Stage stage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("View.fxml"));
         JFXDecorator decorator = new JFXDecorator(stage, root);
-        Scene scene = new Scene(decorator, 600, 400);
+        Scene scene = new Scene(decorator, 640, 405);
         stage.setTitle("Triqui");
         stage.setScene(scene);
         stage.show();
