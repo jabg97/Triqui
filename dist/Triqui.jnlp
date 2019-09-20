@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="1.0" xmlns:jfx="http://javafx.com" href="Triqui.jnlp">
+  <information>
+    <title>Triqui</title>
+    <vendor>Administrador</vendor>
+    <description>null</description>
+    <offline-allowed/>
+  </information>
+  <resources>
+    <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
+    <jar href="Triqui.jar" size="6178" download="eager" />
+    <jar href="lib\jfoenix-8.0.8.jar" size="2708772" download="eager" />
+  </resources>
+  <jfx:javafx-desc  width="800" height="600" main-class="triqui.Triqui"  name="Triqui" />
+  <update check="always"/>
+</jnlp>

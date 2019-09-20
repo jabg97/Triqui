@@ -46,9 +46,9 @@ public class Controller implements Initializable {
         } else {
             if (this.logica.getMovimientos() > 0) {
                 //Turno PC
-                byte desicion = this.logica.decidir();
-                this.logica.actualizar(desicion, this.logica.PC);
-                btn = (JFXButton) scene.lookup("#" + desicion);
+                byte decision = this.logica.decidir();
+                this.logica.actualizar(decision, this.logica.PC);
+                btn = (JFXButton) scene.lookup("#" + decision);
                 btn.setText("O");
                 btn.setDisable(true);
                 resultado = this.logica.fin();

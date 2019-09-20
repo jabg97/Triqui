@@ -14,7 +14,7 @@ public class Logica {
     /**
      * Arreglo que representa el tablero del triqui<BR>
      * |0|1|2|<BR>
-     * |3|4|5|<BR>
+     * |3|4|5|<BR> 
      * |6|7|8|
      */
     private byte[] tablero;
@@ -22,7 +22,7 @@ public class Logica {
     /**
      * Arreglo con todas las jugadas posibles
      */
-    private byte[][] jugadas = {
+    private final byte[][] jugadas = {
         {0, 1, 2}, {3, 4, 5}, {6, 7, 8}, //Horizontal
         {0, 3, 6}, {1, 4, 7}, {2, 5, 8}, //Vertical
         {0, 4, 8}, {2, 4, 6} //Diagonal
@@ -69,9 +69,11 @@ public class Logica {
     }
 
     public byte decidir() {
-        byte desicion = -1;
+        byte decision = -1;
+        byte maximo = Byte.MIN_VALUE;
+        //Si es el primer movimiento de la maquina
         if (this.movimientos == 8) {
-            desicion = inicio();
+            decision = inicio();
         } else {
             for (byte i = 0; i < this.tablero.length; i++) {
                 if (this.tablero[i] == 0) {
@@ -90,15 +92,17 @@ public class Logica {
                         if (resultado[0] == this.FINAL_JUGADOR) {
                             return resultado[1];
                         } /* si no hay posibilidad de perder ni de ganar,
-                        entonces se escoge en un espacio que este disponible
-                         */ else if (resultado[1] > desicion) {
-                            desicion = resultado[1];
+                        entonces se escoge en un espacio que este disponible 
+                        y que tenga el maximo beneficio entre todas las juegadas
+                        posibles */ else if (resultado[2] > maximo && resultado[1] > -1) {
+                            decision = resultado[1];
+                            maximo = resultado[2];
                         }
                     }
                 }
             }
         }
-        return desicion;
+        return decision;
     }
 
     /**
@@ -126,19 +130,29 @@ public class Logica {
      * @param byte[] jugada fila a la que se va a calcular su valor
      * @param byte[] tablero Tablero original o copia que se va a calcular
      * @return byte[] retorna un arreglo de bytes que representa, la suma de esa
-     * jugada y el indice de la posicion vacia de esa jugada.
+     * jugada , el indice de la posicion vacia de esa jugada y por ultimo el
+     * beneficio de esa jugada.
      */
     private byte[] resultado(byte[] tablero, byte[] jugada) {
         byte suma = 0;
+        byte ganancia = 0;
         byte vacio = -1;
         for (byte i : jugada) {
             suma += tablero[i];
             vacio = (this.tablero[i] == 0) ? i : vacio;
+            ganancia += (tablero[i] == this.PC) ? 1
+                    : ((tablero[i] == this.JUGADOR) ? -1 : 0);
             /*encontrar una casilla vacia para jugar en el tablero original*/
         }
-        return new byte[]{suma, vacio};
+        return new byte[]{suma, vacio, ganancia};
     }
 
+    /**
+     * Este metodo devuelve la heuristica del tablero original para validar si
+     * el juego ha terminado
+     *
+     * @return byte valor de la jugada
+     */
     public byte fin() {
         for (byte[] jugada : this.jugadas) {
             byte resultado = resultado(this.tablero, jugada)[0];
